@@ -1,0 +1,80 @@
+﻿@{
+    ViewData["Title"] = "P2P Application";
+}
+
+<div class="text-center">
+    <h1 class="display-4">P2P Application</h1>
+</div>
+
+<div class="text-center">
+    <h2>Client List</h2>
+    <table class="table table-striped" id="clientTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>IP Address</th>
+                <th>Port</th>
+                <th>State</th>
+                <th>Tasks Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        async function fetchClients() {
+            try {
+                const response = await fetch('/api/Clients', {
+                    method: 'GET'
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const clients = await response.json();
+                const clientTableBody = document.querySelector('#clientTable tbody');
+                clientTableBody.innerHTML = ''; // Clear the table body
+                for (const client of clients) {
+                    if (client.state === 2) {
+                        await deleteClient(client.id);
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                                    <td>${client.id}</td>
+                                    <td>${client.ipAddress}</td>
+                                    <td>${client.port}</td>
+                                    <td>${client.state}</td>
+                                    <td>${client.noOfCompletedTasks}</td>
+                                `;
+                        clientTableBody.appendChild(row);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching clients:', error);
+            }
+        }
+
+        async function deleteClient(clientId) {
+            try {
+                const response = await fetch(`/api/Clients/${clientId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete client');
+                }
+                console.log(`Client ${clientId} deleted successfully.`);
+            } catch (error) {
+                console.error('Error deleting client:', error);
+                alert("Error deleting client");
+            }
+        }
+
+        // Fetch clients 
+        fetchClients();
+        setInterval(fetchClients, 60000);
+    </script>
+}
+
